@@ -1,6 +1,7 @@
 # Print the line and filename, function call, the class, str representation and some other info
 
 # Inspired by https://stackoverflow.com/a/8856387/5353461
+
 import inspect
 import re
 
@@ -15,19 +16,27 @@ def describe(arg):
             caller_lines = m.group(1)
             position = str(callerframeinfo.filename) + "@" + str(callerframeinfo.lineno)
 
-            # Add additional info such as array shape or string length
-            additional = ''
+            # Add additional info such as shape, length, datatype
+            additional = []
+
+            if hasattr(arg, "dtype"):
+                additional.append("{}".format(arg.dtype))
+
+            additional.append(type(arg).__qualname__)
+
             if hasattr(arg, "shape"):
-                additional += "[shape={}]".format(arg.shape)
+                additional.append("shape={}".format(tuple(t.shape)))
             elif hasattr(arg, "__len__"):  # shape includes length information
-                additional += "[len={}]".format(len(arg))
+                additional.append("[len={}]".format(len(arg)))
 
             # Use str() representation if it is printable
             str_arg = str(arg)
             str_arg = str_arg if str_arg.isprintable() else repr(arg)
 
             print(position, "describe(" + caller_lines + ") = ", end='')
-            print(arg.__class__.__name__ + "(" + str_arg + ")", additional)
+            print(" ".join(additional) + " ", end='')
+            if "\n" in str_arg; print()  # It's multi-line, line up arrays
+            print(str_arg)
         else:
             print("Describe: couldn't find caller context")
 
